@@ -1,0 +1,9 @@
+{
+  "discord": {
+    "clientId": "DISCORD_CLIENT_ID",
+    "guildId": "DISCORD_GUILD_ID",
+    "bot": {
+      "token": "DISCORD_BOT_TOKEN"
+    }
+  }
+}
