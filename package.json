@@ -8,6 +8,9 @@
     "#src/*": "./dist/*",
     "#tests/*": "./dist/tests/*"
   },
+  "engines": {
+    "node": "16.14.0"
+  },
   "xo": {
     "envs": [
       "es2021",
@@ -29,7 +32,6 @@
   "scripts": {
     "lint": "xo src",
     "cleanup": "rm -rf ./dist",
-    "start": "node dist/index.js",
     "build": "swc -D src -d dist",
     "clean-build": "npm run cleanup && npm run build",
     "dev": "npm run clean-build && nodemon dist/index.js",
