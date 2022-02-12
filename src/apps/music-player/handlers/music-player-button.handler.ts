@@ -81,7 +81,7 @@ export class MusicPlayerButtonHandler implements InteractionEventHandler {
 
         await interaction.update(
           playerView({
-            currentEmoji: "⏹️",
+            currentEmoji: "▶️",
             isPaused: false,
             isStopped: false,
             music,
@@ -98,7 +98,7 @@ export class MusicPlayerButtonHandler implements InteractionEventHandler {
 
         await interaction.update(
           playerView({
-            currentEmoji: "⏹️",
+            currentEmoji: "▶️",
             isPaused: false,
             isStopped: false,
             music,
