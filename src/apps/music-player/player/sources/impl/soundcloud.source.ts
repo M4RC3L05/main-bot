@@ -3,10 +3,12 @@ import LRUCache from "lru-cache";
 import { AppError } from "#src/core/errors/app.error";
 import {
   GetStreamResult,
+  MusicInfo,
   SourceItemGenerator,
   StreamSource,
 } from "#src/apps/music-player/player/sources/stream-source";
 import { loggerFactory } from "#src/core/clients/logger";
+import { PlayerSearchTypes } from "#src/apps/music-player/commands";
 
 const logger = loggerFactory("soundcloud-source");
 
@@ -31,6 +33,20 @@ export class SoundCloudSource implements StreamSource {
     return SoundCloudSource.#infoCache.get(url);
   }
 
+  async #getFromStaticCache(url: string, info?: SoundCloudTrack) {
+    return SoundCloudSource.#getFromCache(url, info);
+  }
+
+  async #validateUrl(url: string) {
+    const type = await play.so_validate(url);
+
+    if (!type || (type !== "track" && type !== "playlist")) {
+      throw new AppError(`Invalid soundlcloud url "${JSON.stringify(url)}"`);
+    }
+
+    return type;
+  }
+
   async init(): Promise<void> {
     if (SoundCloudSource.#booted) {
       return;
@@ -45,20 +61,6 @@ export class SoundCloudSource implements StreamSource {
         client_id: clientId,
       },
     });
-  }
-
-  async #getFromStaticCache(url: string, info?: SoundCloudTrack) {
-    return SoundCloudSource.#getFromCache(url, info);
-  }
-
-  async #validateUrl(url: string) {
-    const type = await play.so_validate(url);
-
-    if (!type || (type !== "track" && type !== "playlist")) {
-      throw new AppError(`Invalid soundlcloud url "${JSON.stringify(url)}"`);
-    }
-
-    return type;
   }
 
   async getLinkType(
@@ -110,5 +112,39 @@ export class SoundCloudSource implements StreamSource {
     await this.#validateUrl(url);
 
     return play.stream(url);
+  }
+
+  async search(
+    query: string,
+    type: PlayerSearchTypes,
+  ): Promise<Array<Omit<MusicInfo, "stream">>> {
+    logger.info({ query, type }, "Searching.");
+
+    if (!query) {
+      throw new AppError("No search term provided");
+    }
+
+    if (type && !["track", "playlist", "album"].includes(type)) {
+      throw new AppError(
+        `Invalid search type of "${type}" for soundcloud source`,
+      );
+    }
+
+    const results = (await play.search(query, {
+      // @ts-expect-error this is ok
+      source: { soundcloud: type ? `${type}s` : "tracks" },
+      fuzzy: true,
+      limit: 8,
+    })) as SoundCloudTrack[] | SoundCloudPlaylist[];
+
+    return results.map((track: SoundCloudTrack | SoundCloudPlaylist) => ({
+      title: track.name,
+      url: track.url,
+      author: track.user.name,
+      thumb:
+        track instanceof SoundCloudTrack
+          ? { height: 300, width: 300, url: track.thumbnail }
+          : undefined,
+    }));
   }
 }

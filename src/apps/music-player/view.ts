@@ -6,7 +6,7 @@ import {
 } from "discord.js";
 import { APIButtonComponent } from "discord-api-types";
 import { PlayerActions } from "#src/apps/music-player/commands";
-import { MusicInfo } from "#src/apps/music-player/player/music-queue";
+import { MusicInfo } from "#src/apps/music-player/player/sources/stream-source";
 
 export type PlayerActionsComponentProps = {
   buttons: Array<MessageButton | MessageButtonOptions | APIButtonComponent>;

@@ -1,12 +1,14 @@
 import LRUCache from "lru-cache";
-import play, { YouTubeVideo } from "play-dl";
+import play, { YouTubeChannel, YouTubePlayList, YouTubeVideo } from "play-dl";
 import { AppError } from "#src/core/errors/app.error";
 import {
   GetStreamResult,
+  MusicInfo,
   SourceItemGenerator,
   StreamSource,
 } from "#src/apps/music-player/player/sources/stream-source";
 import { loggerFactory } from "#src/core/clients/logger";
+import { PlayerSearchTypes } from "#src/apps/music-player/commands";
 
 const logger = loggerFactory("youtube-source");
 
@@ -32,10 +34,6 @@ export class YoutubeSource implements StreamSource {
     return YoutubeSource.#infoCache.get(url);
   }
 
-  async init(): Promise<void> {
-    return Promise.resolve();
-  }
-
   async #getFromStaticCache(url: string, info?: YouTubeVideo) {
     return YoutubeSource.#getFromCache(url, info);
   }
@@ -48,6 +46,10 @@ export class YoutubeSource implements StreamSource {
     }
 
     return type;
+  }
+
+  async init(): Promise<void> {
+    return Promise.resolve();
   }
 
   async getLinkType(
@@ -99,5 +101,44 @@ export class YoutubeSource implements StreamSource {
     await this.#validateUrl(url);
 
     return play.stream(url);
+  }
+
+  async search(
+    query: string,
+    type?: PlayerSearchTypes,
+  ): Promise<Array<Omit<MusicInfo, "stream">>> {
+    logger.info({ query, type }, "Searching.");
+
+    if (!query) {
+      throw new AppError("No search term provided");
+    }
+
+    if (type && !["video", "playlist", "channel"].includes(type)) {
+      throw new AppError(
+        `Invalid search type of "${type}" for soundcloud source`,
+      );
+    }
+
+    const results = (await play.search(query, {
+      // @ts-expect-error This is ok.
+      source: { youtube: type ?? "video" },
+      fuzzy: true,
+      limit: 8,
+    })) as YouTubeVideo[] | YouTubeChannel[] | YouTubePlayList[];
+
+    return results.map(
+      (video: YouTubeVideo | YouTubeChannel | YouTubePlayList) => ({
+        title: video instanceof YouTubeChannel ? video.name : video.title,
+        url: video.url,
+        author:
+          video instanceof YouTubeChannel ? video.name : video.channel.name,
+        thumb:
+          video instanceof YouTubeChannel
+            ? video.icons.at(-1)
+            : video instanceof YouTubePlayList
+            ? video.thumbnail
+            : video.thumbnails.at(-1),
+      }),
+    );
   }
 }
