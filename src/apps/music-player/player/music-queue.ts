@@ -1,12 +1,4 @@
-import { Readable } from "node:stream";
-import { StreamType } from "@discordjs/voice";
-
-export type MusicInfo = {
-  title?: string;
-  thumb?: { url: string; width: number; height: number };
-  url: string;
-  stream: () => Promise<{ stream: Readable; type: StreamType }>;
-};
+import { MusicInfo } from "#src/apps/music-player/player/sources/stream-source";
 
 export class MusicQueue {
   #queue: MusicInfo[] = [];

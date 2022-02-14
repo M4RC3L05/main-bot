@@ -1,6 +1,15 @@
-import { CommandInteraction, Interaction, Message } from "discord.js";
+import {
+  CommandInteraction,
+  Interaction,
+  Message,
+  MessageEmbed,
+} from "discord.js";
 import { DiscordPlayer } from "#src/apps/music-player/player/player";
-import { PlayerActions, PlayerSources } from "#src/apps/music-player/commands";
+import {
+  PlayerActions,
+  PlayerSearchTypes,
+  PlayerSources,
+} from "#src/apps/music-player/commands";
 import { AppError } from "#src/core/errors/app.error";
 import { playerView } from "#src/apps/music-player/view";
 import { StreamSource } from "#src/apps/music-player/player/sources/stream-source";
@@ -112,6 +121,38 @@ export class MusicPlayerCommandHandler implements InteractionEventHandler {
         await interaction.reply({
           content: items.length <= 0 ? "No items in queue." : items.join("\n"),
           ephemeral: true,
+        });
+
+        break;
+      }
+
+      case PlayerActions.SEARCH: {
+        await interaction.deferReply({ ephemeral: true });
+
+        const source = interaction.options.getString("source") as PlayerSources;
+        const query = interaction.options.getString("query");
+        const type = interaction.options.getString("type") as PlayerSearchTypes;
+
+        const sSource = await this.#sourceFactory(source);
+        const results = await sSource.search(query, type);
+
+        await interaction.editReply({
+          content: `**Search results for "${query}" on "${
+            type
+              ? type
+              : source === PlayerSources.SOUNDCLOUD
+              ? "track"
+              : "video"
+          }"**${results.length <= 0 ? "\nNo search results" : ""}`,
+          embeds: results.map(
+            (result) =>
+              new MessageEmbed({
+                title: result.title,
+                thumbnail: result.thumb,
+                author: { name: result.author },
+                url: result.url,
+              }),
+          ),
         });
 
         break;
