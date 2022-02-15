@@ -5,14 +5,14 @@ import {
   GetStreamResult,
   MusicInfo,
   SourceItemGenerator,
-  StreamSource,
-} from "#src/apps/music-player/player/sources/stream-source";
+  PlayerSource,
+} from "#src/apps/music-player/player/sources/player-source";
 import { loggerFactory } from "#src/core/clients/logger";
 import { PlayerSearchTypes } from "#src/apps/music-player/commands";
 
 const logger = loggerFactory("youtube-source");
 
-export class YoutubeSource implements StreamSource {
+export class YoutubeSource implements PlayerSource {
   static #infoCache = new LRUCache<string, YouTubeVideo>({ max: 100 });
 
   static async #getFromCache(url: string, info?: YouTubeVideo) {

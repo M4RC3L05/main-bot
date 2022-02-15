@@ -1,21 +1,39 @@
-import { Interaction, ButtonInteraction, Message } from "discord.js";
+import { Interaction, Message } from "discord.js";
 import { PlayerActions } from "#src/apps/music-player/commands";
 import { DiscordPlayer } from "#src/apps/music-player/player/player";
 import { AppError } from "#src/core/errors/app.error";
 import { playerView } from "#src/apps/music-player/view";
-import { InteractionEventHandler } from "#src/core/interfaces/interaction-event-handler";
 import { loggerFactory } from "#src/core/clients/logger";
+import { DiscordEventHandler } from "#src/core/interfaces/discord-event-handler";
 
 const logger = loggerFactory("music-player-button-handler");
 
-export class MusicPlayerButtonHandler implements InteractionEventHandler {
+export class MusicPlayerButtonHandler
+  implements DiscordEventHandler<"interactionCreate">
+{
+  type: "interactionCreate" = "interactionCreate";
   #discordPlayer: DiscordPlayer;
+  #playerMessage: {
+    setPlayerMessage: (message: Message) => void;
+    getPlayerMessage: () => Message;
+  };
 
-  constructor(discordPlayer: DiscordPlayer) {
+  constructor(
+    discordPlayer: DiscordPlayer,
+    playerMessage: {
+      setPlayerMessage: (message: Message) => void;
+      getPlayerMessage: () => Message;
+    },
+  ) {
     this.#discordPlayer = discordPlayer;
+    this.#playerMessage = playerMessage;
   }
 
-  async handle(interaction: ButtonInteraction): Promise<void | Interaction> {
+  async handle(interaction: Interaction): Promise<true | void> {
+    if (!interaction.isButton()) {
+      return;
+    }
+
     const action = interaction.customId as PlayerActions;
 
     logger.info({ action }, "interaction to be handled");
@@ -36,7 +54,7 @@ export class MusicPlayerButtonHandler implements InteractionEventHandler {
           }),
         );
 
-        break;
+        return true;
       }
 
       case PlayerActions.RESUME: {
@@ -54,7 +72,7 @@ export class MusicPlayerButtonHandler implements InteractionEventHandler {
           }),
         );
 
-        break;
+        return true;
       }
 
       case PlayerActions.STOP: {
@@ -73,7 +91,7 @@ export class MusicPlayerButtonHandler implements InteractionEventHandler {
           }),
         );
 
-        break;
+        return true;
       }
 
       case PlayerActions.NEXT: {
@@ -90,7 +108,7 @@ export class MusicPlayerButtonHandler implements InteractionEventHandler {
           }),
         );
 
-        break;
+        return true;
       }
 
       case PlayerActions.PREVIOUS: {
@@ -107,14 +125,19 @@ export class MusicPlayerButtonHandler implements InteractionEventHandler {
           }),
         );
 
-        break;
+        return true;
       }
 
       case PlayerActions.CLOSE: {
-        await (interaction.message as Message).delete();
+        if (this.#playerMessage.getPlayerMessage()) {
+          await this.#playerMessage.getPlayerMessage().delete();
+
+          this.#playerMessage.setPlayerMessage(null);
+        }
+
         await this.#discordPlayer.reset();
 
-        break;
+        return true;
       }
 
       default: {

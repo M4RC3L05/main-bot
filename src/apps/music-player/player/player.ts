@@ -7,7 +7,7 @@ import {
 } from "@discordjs/voice";
 import { VoiceBasedChannel } from "discord.js";
 import { MusicQueue } from "#src/apps/music-player/player/music-queue";
-import { StreamSource } from "#src/apps/music-player/player/sources/stream-source";
+import { PlayerSource } from "#src/apps/music-player/player/sources/player-source";
 
 export class DiscordPlayer {
   #musicQueue: MusicQueue;
@@ -85,7 +85,7 @@ export class DiscordPlayer {
     }
   }
 
-  async load({ url, source }: { url: string; source: StreamSource }) {
+  async load({ url, source }: { url: string; source: PlayerSource }) {
     const type = await source.getLinkType(url);
 
     const items =
@@ -96,7 +96,7 @@ export class DiscordPlayer {
     this.#musicQueue.load(items);
   }
 
-  async add({ url, source }: { url: string; source: StreamSource }) {
+  async add({ url, source }: { url: string; source: PlayerSource }) {
     const type = await source.getLinkType(url);
     const items =
       type === "playlist"
