@@ -1,9 +1,4 @@
-import {
-  CommandInteraction,
-  Interaction,
-  Message,
-  MessageEmbed,
-} from "discord.js";
+import { Interaction, Message, MessageEmbed } from "discord.js";
 import { DiscordPlayer } from "#src/apps/music-player/player/player";
 import {
   PlayerActions,
@@ -12,34 +7,47 @@ import {
 } from "#src/apps/music-player/commands";
 import { AppError } from "#src/core/errors/app.error";
 import { playerView } from "#src/apps/music-player/view";
-import { StreamSource } from "#src/apps/music-player/player/sources/stream-source";
-import { InteractionEventHandler } from "#src/core/interfaces/interaction-event-handler";
+import { PlayerSource } from "#src/apps/music-player/player/sources/player-source";
 import { loggerFactory } from "#src/core/clients/logger";
+import { DiscordEventHandler } from "#src/core/interfaces/discord-event-handler";
 
 const logger = loggerFactory("music-player-commands-handler");
 
-export class MusicPlayerCommandHandler implements InteractionEventHandler {
-  static #message: Message;
+export class MusicPlayerCommandHandler
+  implements DiscordEventHandler<"interactionCreate">
+{
+  #playerMessage: {
+    setPlayerMessage: (message: Message) => void;
+    getPlayerMessage: () => Message;
+  };
 
   #discordPlayer: DiscordPlayer;
-  #sourceFactory: (sourceType: PlayerSources) => Promise<StreamSource>;
+  #sourceFactory: (sourceType: PlayerSources) => Promise<PlayerSource>;
+  type: "interactionCreate" = "interactionCreate";
 
   constructor(
     discordPlayer: DiscordPlayer,
-    sourceFactory: (sourceType: PlayerSources) => Promise<StreamSource>,
+    sourceFactory: (sourceType: PlayerSources) => Promise<PlayerSource>,
+    playerMessage: {
+      setPlayerMessage: (message: Message) => void;
+      getPlayerMessage: () => Message;
+    },
   ) {
     this.#discordPlayer = discordPlayer;
     this.#sourceFactory = sourceFactory;
+    this.#playerMessage = playerMessage;
   }
 
-  static get message() {
-    return MusicPlayerCommandHandler.#message;
-  }
+  async handle(interaction: Interaction): Promise<true | void> {
+    if (!interaction.isCommand()) {
+      return;
+    }
 
-  async handle(interaction: CommandInteraction): Promise<void | Interaction> {
     const { commandName } = interaction;
 
-    if (commandName !== "player") return interaction;
+    if (commandName !== "player") {
+      return;
+    }
 
     logger.info({ commandName }, "interaction to be handled");
 
@@ -47,8 +55,10 @@ export class MusicPlayerCommandHandler implements InteractionEventHandler {
 
     switch (playerAction) {
       case PlayerActions.PLAY: {
-        if (MusicPlayerCommandHandler.message) {
-          await MusicPlayerCommandHandler.message.delete();
+        if (this.#playerMessage.getPlayerMessage()) {
+          await this.#playerMessage.getPlayerMessage().delete();
+
+          this.#playerMessage.setPlayerMessage(null);
         }
 
         const playerSource = interaction.options.getString(
@@ -71,7 +81,7 @@ export class MusicPlayerCommandHandler implements InteractionEventHandler {
 
         const music = await this.#discordPlayer.play({ channel });
 
-        MusicPlayerCommandHandler.#message = (await interaction.editReply(
+        const message = (await interaction.editReply(
           playerView({
             currentEmoji: "▶️",
             isPaused: false,
@@ -81,18 +91,19 @@ export class MusicPlayerCommandHandler implements InteractionEventHandler {
             total: String(await this.#discordPlayer.total()),
           }),
         )) as Message;
+        this.#playerMessage.setPlayerMessage(message);
 
         logger.info(
           {
             url,
             channelId: channel.id,
             music,
-            messageId: MusicPlayerCommandHandler.#message.id,
+            messageId: message.id,
           },
           "Playing",
         );
 
-        break;
+        return true;
       }
 
       case PlayerActions.ADD: {
@@ -109,7 +120,7 @@ export class MusicPlayerCommandHandler implements InteractionEventHandler {
         await interaction.editReply({ content: "Done" });
 
         logger.info({ url }, "Added to queue");
-        break;
+        return true;
       }
 
       case PlayerActions.LIST: {
@@ -123,7 +134,7 @@ export class MusicPlayerCommandHandler implements InteractionEventHandler {
           ephemeral: true,
         });
 
-        break;
+        return true;
       }
 
       case PlayerActions.SEARCH: {
@@ -155,7 +166,7 @@ export class MusicPlayerCommandHandler implements InteractionEventHandler {
           ),
         });
 
-        break;
+        return true;
       }
 
       default: {

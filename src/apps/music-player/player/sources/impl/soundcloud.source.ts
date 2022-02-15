@@ -5,14 +5,14 @@ import {
   GetStreamResult,
   MusicInfo,
   SourceItemGenerator,
-  StreamSource,
-} from "#src/apps/music-player/player/sources/stream-source";
+  PlayerSource,
+} from "#src/apps/music-player/player/sources/player-source";
 import { loggerFactory } from "#src/core/clients/logger";
 import { PlayerSearchTypes } from "#src/apps/music-player/commands";
 
 const logger = loggerFactory("soundcloud-source");
 
-export class SoundCloudSource implements StreamSource {
+export class SoundCloudSource implements PlayerSource {
   static #booted = false;
   static #infoCache = new LRUCache<string, SoundCloudTrack>({ max: 100 });
 

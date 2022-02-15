@@ -41,10 +41,14 @@ export const commands = [
             .addChoices([
               ["Youtube", PlayerSources.YOUTUBE],
               ["Soundcloud", PlayerSources.SOUNDCLOUD],
-            ]),
+            ])
+            .setRequired(true),
         )
         .addStringOption((option) =>
-          option.setName("url").setDescription("Resource url"),
+          option
+            .setName("url")
+            .setDescription("Resource url")
+            .setRequired(true),
         ),
     )
     .addSubcommand((input) =>

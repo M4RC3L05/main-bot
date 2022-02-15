@@ -1,26 +1,29 @@
 import config from "config";
-import pino from "pino";
-import { Interaction } from "discord.js";
-import { SlashCommandBuilder } from "@discordjs/builders";
+import { ClientEvents } from "discord.js";
+import { SlashCommandSubcommandsOnlyBuilder } from "@discordjs/builders";
 import { discordClient } from "#src/core/clients/discord";
 import { logger } from "#src/core/clients/logger";
-import { errorReplyer, syncCommands } from "#src/core/utils/discord";
-import { AppError } from "#src/core/errors/app.error";
+import { handleEvent, syncCommands } from "#src/core/utils/discord";
+import { DiscordEventHandler } from "#src/core/interfaces/discord-event-handler";
 
 export class Bot {
-  #handlers: Array<(interaction: Interaction) => Promise<Interaction | void>>;
-  #commands: SlashCommandBuilder[];
+  #handlers: Map<keyof ClientEvents, Array<DiscordEventHandler<any>>>;
+  #commands: SlashCommandSubcommandsOnlyBuilder[];
 
   constructor(
-    handlers: Array<(interaction: Interaction) => Promise<Interaction | void>>,
-    commands: SlashCommandBuilder[],
+    handlers: Array<DiscordEventHandler<any>>,
+    commands: SlashCommandSubcommandsOnlyBuilder[],
   ) {
-    this.onInteraction = this.onInteraction.bind(
-      this,
-    ) as typeof this.onInteraction;
-
-    this.#handlers = handlers;
+    this.#handlers = new Map();
     this.#commands = commands;
+
+    for (const handler of handlers) {
+      if (!this.#handlers.has(handler.type)) {
+        this.#handlers.set(handler.type, []);
+      }
+
+      this.#handlers.get(handler.type).push(handler);
+    }
   }
 
   async #login() {
@@ -40,45 +43,17 @@ export class Bot {
     logger.info("Discord ready");
   }
 
-  async onInteraction(interaction: Interaction) {
-    logger.info({ interaction }, "New interaction");
-
-    try {
-      let cursor = 0;
-      for (const handler of this.#handlers) {
-        // eslint-disable-next-line no-await-in-loop
-        if ((await handler(interaction)) !== interaction) {
-          break;
-        }
-
-        cursor += 1;
-      }
-
-      if (cursor === this.#handlers.length && interaction.isCommand()) {
-        throw new AppError(
-          `Could not process interaction \`\`\`${JSON.stringify(
-            interaction.toString(),
-          )}\`\`\``,
-        );
-      }
-    } catch (error: unknown) {
-      logger.error(
-        {
-          error:
-            error instanceof Error
-              ? pino.stdSerializers.err(error as any)
-              : error,
-        },
-        "A new error occured while processing interaction",
+  #bindEvents() {
+    for (const [clientEvent, handlers] of this.#handlers.entries()) {
+      logger.info(
+        { clientEvent, numberHandlers: handlers.length },
+        `Binding ${handlers.length} handlers for ${clientEvent} client event`,
       );
 
-      await errorReplyer(interaction, error);
+      discordClient.on(clientEvent, async (...args) =>
+        handleEvent(...handlers)(...args),
+      );
     }
-  }
-
-  #bindEvents() {
-    logger.info("Binding interactionCreate");
-    discordClient.on("interactionCreate", this.onInteraction);
   }
 
   async init() {
