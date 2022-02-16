@@ -1,10 +1,15 @@
 import config from "config";
-import { ClientEvents } from "discord.js";
+import { ClientEvents, Interaction } from "discord.js";
 import { SlashCommandSubcommandsOnlyBuilder } from "@discordjs/builders";
-import { discordClient } from "#src/core/clients/discord";
-import { logger } from "#src/core/clients/logger";
-import { handleEvent, syncCommands } from "#src/core/utils/discord";
-import { DiscordEventHandler } from "#src/core/interfaces/discord-event-handler";
+import pino from "pino";
+import { DiscordEventHandler } from "#src/core/interfaces/discord-event-handler.js";
+import { logger } from "#src/core/clients/logger.js";
+import { discordClient } from "#src/core/clients/discord.js";
+import {
+  errorReplyer,
+  handleEvent,
+  syncCommands,
+} from "#src/core/utils/discord.js";
 
 export class Bot {
   #handlers: Map<keyof ClientEvents, Array<DiscordEventHandler<any>>>;
@@ -50,9 +55,26 @@ export class Bot {
         `Binding ${handlers.length} handlers for ${clientEvent} client event`,
       );
 
-      discordClient.on(clientEvent, async (...args) =>
-        handleEvent(...handlers)(...args),
-      );
+      discordClient.on(clientEvent, async (...args) => {
+        try {
+          await handleEvent(...handlers)(...args);
+        } catch (error: unknown) {
+          logger.error(
+            {
+              error:
+                error instanceof Error
+                  ? pino.stdSerializers.err(error as any)
+                  : error,
+              args,
+            },
+            "A new error occured while processing interaction",
+          );
+
+          if (args.at(0) && args.at(0) instanceof Interaction) {
+            await errorReplyer(args.at(0) as Interaction, error);
+          }
+        }
+      });
     }
   }
 

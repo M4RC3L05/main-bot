@@ -1,14 +1,14 @@
 import play, { SoundCloudPlaylist, SoundCloudTrack } from "play-dl";
 import LRUCache from "lru-cache";
-import { AppError } from "#src/core/errors/app.error";
+import { loggerFactory } from "#src/core/clients/logger.js";
 import {
   GetStreamResult,
   MusicInfo,
-  SourceItemGenerator,
   PlayerSource,
-} from "#src/apps/music-player/player/sources/player-source";
-import { loggerFactory } from "#src/core/clients/logger";
-import { PlayerSearchTypes } from "#src/apps/music-player/commands";
+  SourceItemGenerator,
+} from "#src/apps/music-player/player/sources/player-source.js";
+import { AppError } from "#src/core/errors/app.error.js";
+import { PlayerSearchTypes } from "#src/apps/music-player/commands.js";
 
 const logger = loggerFactory("soundcloud-source");
 

@@ -1,9 +1,9 @@
-import { PlayerSources } from "#src/apps/music-player/commands";
-import { SoundCloudSource } from "#src/apps/music-player/player/sources/impl/soundcloud.source";
-import { YoutubeSource } from "#src/apps/music-player/player/sources/impl/youtube.source";
-import { PlayerSource } from "#src/apps/music-player/player/sources/player-source";
-import { loggerFactory } from "#src/core/clients/logger";
-import { AppError } from "#src/core/errors/app.error";
+import { PlayerSources } from "#src/apps/music-player/commands.js";
+import { SoundCloudSource } from "#src/apps/music-player/player/sources/impl/soundcloud.source.js";
+import { YoutubeSource } from "#src/apps/music-player/player/sources/impl/youtube.source.js";
+import { PlayerSource } from "#src/apps/music-player/player/sources/player-source.js";
+import { loggerFactory } from "#src/core/clients/logger.js";
+import { AppError } from "#src/core/errors/app.error.js";
 
 const logger = loggerFactory("music-player-source-factory");
 

@@ -1,8 +1,8 @@
 import { Interaction } from "discord.js";
-import { DiscordEventHandler } from "#src/core/interfaces/discord-event-handler";
-import { loggerFactory } from "#src/core/clients/logger";
-import { sourceFactory } from "#src/apps/quotes/sources/source-factory";
-import { QuoteCommandSource } from "#src/apps/quotes/commands";
+import { QuoteCommandSource } from "#src/apps/quotes/commands.js";
+import { loggerFactory } from "#src/core/clients/logger.js";
+import { DiscordEventHandler } from "#src/core/interfaces/discord-event-handler.js";
+import { sourceFactory } from "#src/apps/quotes/sources/source-factory.js";
 
 const logger = loggerFactory("quote-command-handler");
 

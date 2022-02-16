@@ -1,15 +1,15 @@
 import { Interaction, Message, MessageEmbed } from "discord.js";
-import { DiscordPlayer } from "#src/apps/music-player/player/player";
+import { loggerFactory } from "#src/core/clients/logger.js";
+import { DiscordEventHandler } from "#src/core/interfaces/discord-event-handler.js";
+import { DiscordPlayer } from "#src/apps/music-player/player/player.js";
 import {
   PlayerActions,
   PlayerSearchTypes,
   PlayerSources,
-} from "#src/apps/music-player/commands";
-import { AppError } from "#src/core/errors/app.error";
-import { playerView } from "#src/apps/music-player/view";
-import { PlayerSource } from "#src/apps/music-player/player/sources/player-source";
-import { loggerFactory } from "#src/core/clients/logger";
-import { DiscordEventHandler } from "#src/core/interfaces/discord-event-handler";
+} from "#src/apps/music-player/commands.js";
+import { PlayerSource } from "#src/apps/music-player/player/sources/player-source.js";
+import { playerView } from "#src/apps/music-player/view.js";
+import { AppError } from "#src/core/errors/app.error.js";
 
 const logger = loggerFactory("music-player-commands-handler");
 
@@ -67,7 +67,7 @@ export class MusicPlayerCommandHandler
         const url = interaction.options.getString("url");
         const guild = interaction.client.guilds.cache.get(interaction.guildId);
         const member = guild.members.cache.get(interaction.member.user.id);
-        const channel = member.voice.channel;
+        const { channel } = member.voice;
 
         await this.#discordPlayer.reset();
         await interaction.reply({ content: `⌛ Loading...` });
@@ -125,7 +125,7 @@ export class MusicPlayerCommandHandler
 
       case PlayerActions.LIST: {
         const current = this.#discordPlayer.getCursor();
-        const items = Array.from(this.#discordPlayer.getQueue()).map(
+        const items = [...this.#discordPlayer.getQueue()].map(
           ({ title }, index) => `${index === current ? "> " : ""}${title}`,
         );
 

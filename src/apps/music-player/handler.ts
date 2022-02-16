@@ -1,12 +1,12 @@
 import { Message } from "discord.js";
-import { sourceFactory } from "#src/apps/music-player/player/sources/source-factory";
-import { DiscordPlayer } from "#src/apps/music-player/player/player";
-import { MusicPlayerCommandHandler } from "#src/apps/music-player/handlers/music-player-command.handler";
-import { MusicPlayerButtonHandler } from "#src/apps/music-player/handlers/music-player-button.handler";
-import { playerView } from "#src/apps/music-player/view";
-import { DiscordEventHandlerAggregator } from "#src/core/interfaces/discord-event-handler-aggregator";
-import { loggerFactory } from "#src/core/clients/logger";
-import { DiscordEventHandler } from "#src/core/interfaces/discord-event-handler";
+import { MusicPlayerButtonHandler } from "#src/apps/music-player/handlers/music-player-button.handler.js";
+import { MusicPlayerCommandHandler } from "#src/apps/music-player/handlers/music-player-command.handler.js";
+import { DiscordPlayer } from "#src/apps/music-player/player/player.js";
+import { loggerFactory } from "#src/core/clients/logger.js";
+import { DiscordEventHandlerAggregator } from "#src/core/interfaces/discord-event-handler-aggregator.js";
+import { DiscordEventHandler } from "#src/core/interfaces/discord-event-handler.js";
+import { sourceFactory } from "#src/apps/music-player/player/sources/source-factory.js";
+import { playerView } from "#src/apps/music-player/view.js";
 
 const logger = loggerFactory("music-player-handler");
 

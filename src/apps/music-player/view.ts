@@ -5,8 +5,8 @@ import {
   WebhookEditMessageOptions,
 } from "discord.js";
 import { APIButtonComponent } from "discord-api-types";
-import { PlayerActions } from "#src/apps/music-player/commands";
-import { MusicInfo } from "#src/apps/music-player/player/sources/stream-source";
+import { MusicInfo } from "#src/apps/music-player/player/sources/player-source.js";
+import { PlayerActions } from "#src/apps/music-player/commands.js";
 
 export type PlayerActionsComponentProps = {
   buttons: Array<MessageButton | MessageButtonOptions | APIButtonComponent>;
