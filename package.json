@@ -1,17 +1,20 @@
 {
   "name": "discord-bot",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "",
   "main": "index.js",
   "type": "module",
   "imports": {
-    "#src/*": "./dist/*"
+    "#src/*": "./dist/*",
+    "#tests/*": "./dist/tests/*"
   },
   "xo": {
-    "prettier": true,
-    "rules": {
-      "import/extensions": "off"
-    }
+    "envs": [
+      "es2021",
+      "node"
+    ],
+    "nodeVersion": false,
+    "prettier": true
   },
   "prettier": {
     "arrowParens": "always",
@@ -24,11 +27,16 @@
     "useTabs": false
   },
   "scripts": {
+    "lint": "xo src",
     "cleanup": "rm -rf ./dist",
-    "start": "node --es-module-specifier-resolution=node dist/index.js",
+    "start": "node dist/index.js",
     "build": "swc -D src -d dist",
     "clean-build": "npm run cleanup && npm run build",
-    "dev": "npm run clean-build && nodemon --es-module-specifier-resolution=node dist/index.js"
+    "dev": "npm run clean-build && nodemon dist/index.js",
+    "test": "NODE_ENV=test uvu dist/tests .+\\.test\\.js",
+    "test-coverage": "c8 --include=dist --exclude=dist/tests --all npm run test",
+    "test-dev": "npm run clean-build && npm run test",
+    "test-dev-coverage": "npm run clean-build && npm run test-coverage"
   },
   "keywords": [],
   "author": "",
@@ -39,15 +47,17 @@
     "@types/config": "^0.0.41",
     "@types/lru-cache": "^5.1.1",
     "@types/node": "^17.0.17",
+    "c8": "^7.11.0",
     "nodemon": "^2.0.15",
     "pino-pretty": "^7.5.1",
     "prettier": "^2.5.1",
     "typescript": "^4.5.5",
+    "uvu": "^0.5.3",
     "xo": "^0.47.0"
   },
   "dependencies": {
     "@discordjs/builders": "^0.12.0",
-    "@discordjs/opus": "^0.5.3",
+    "@discordjs/opus": "^0.7.0",
     "@discordjs/rest": "^0.3.0",
     "@discordjs/voice": "^0.8.0",
     "@swc/helpers": "^0.3.3",

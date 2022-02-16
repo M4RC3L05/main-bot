@@ -1,6 +1,6 @@
 import { Readable } from "node:stream";
 import { StreamType } from "@discordjs/voice";
-import { PlayerSearchTypes } from "#src/apps/music-player/commands";
+import { PlayerSearchTypes } from "#src/apps/music-player/commands.js";
 
 export type MusicInfo = {
   title?: string;

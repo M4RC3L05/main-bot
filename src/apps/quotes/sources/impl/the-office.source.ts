@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
-import { Quote, QuoteSource } from "#src/apps/quotes/sources/quote-source";
-import { loggerFactory } from "#src/core/clients/logger";
+import { Quote, QuoteSource } from "#src/apps/quotes/sources/quote-source.js";
+import { loggerFactory } from "#src/core/clients/logger.js";
 
 const logger = loggerFactory("the-office-source");
 

@@ -1,14 +1,14 @@
 import LRUCache from "lru-cache";
 import play, { YouTubeChannel, YouTubePlayList, YouTubeVideo } from "play-dl";
-import { AppError } from "#src/core/errors/app.error";
 import {
   GetStreamResult,
   MusicInfo,
-  SourceItemGenerator,
   PlayerSource,
-} from "#src/apps/music-player/player/sources/player-source";
-import { loggerFactory } from "#src/core/clients/logger";
-import { PlayerSearchTypes } from "#src/apps/music-player/commands";
+  SourceItemGenerator,
+} from "#src/apps/music-player/player/sources/player-source.js";
+import { loggerFactory } from "#src/core/clients/logger.js";
+import { AppError } from "#src/core/errors/app.error.js";
+import { PlayerSearchTypes } from "#src/apps/music-player/commands.js";
 
 const logger = loggerFactory("youtube-source");
 

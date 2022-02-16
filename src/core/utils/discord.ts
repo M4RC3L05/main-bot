@@ -3,25 +3,38 @@ import pino from "pino";
 import { REST } from "@discordjs/rest";
 import config from "config";
 import { Routes } from "discord-api-types/v9";
-import { AppError } from "#src/core/errors/app.error";
-import { logger } from "#src/core/clients/logger";
-import { DiscordEventHandler } from "#src/core/interfaces/discord-event-handler";
+import { AppError } from "#src/core/errors/app.error.js";
+import { logger } from "#src/core/clients/logger.js";
+import { DiscordEventHandler } from "#src/core/interfaces/discord-event-handler.js";
 
 export const errorReplyer = async (interaction: Interaction, error: any) => {
   const errorMessage =
     error instanceof AppError ? error.message : "Someting went wrong.";
+  const replayableInteraction =
+    typeof (interaction as any).reply === "function" ||
+    typeof (interaction as any).editReply === "function";
 
-  await (!(interaction as any).replied &&
-  typeof (interaction as any).reply === "function"
-    ? (interaction as any as { reply: (value: any) => Promise<void> }).reply({
+  if (replayableInteraction) {
+    if ((interaction as any).replied) {
+      await (
+        interaction as any as { editReply: (value: any) => Promise<void> }
+      ).editReply({
         content: `💥 ${errorMessage}`,
         ephemeral: true,
-      })
-    : interaction.channel.send({
+      });
+    } else {
+      await (
+        interaction as any as { reply: (value: any) => Promise<void> }
+      ).reply({
         content: `💥 ${errorMessage}`,
-        // @ts-expect-error: This is ok.
         ephemeral: true,
-      }));
+      });
+    }
+  } else {
+    await interaction.user.send({
+      content: `💥 ${errorMessage}`,
+    });
+  }
 };
 
 export const syncCommands = async (commands: any[]) => {
@@ -54,34 +67,18 @@ export const handleEvent =
   async (...args: ClientEvents[K]) => {
     logger.info({ args }, "New interaction");
 
-    try {
-      let cursor = 0;
-      for (const handler of handlers) {
-        // eslint-disable-next-line no-await-in-loop
-        if ((await handler.handle(...args)) === true) {
-          break;
-        }
+    let cursor = 0;
 
-        cursor += 1;
+    for (const handler of handlers) {
+      // eslint-disable-next-line no-await-in-loop
+      if ((await handler.handle(...args)) === true) {
+        break;
       }
 
-      if (cursor === handlers.length) {
-        throw new AppError(`Could not process event`);
-      }
-    } catch (error: unknown) {
-      logger.error(
-        {
-          error:
-            error instanceof Error
-              ? pino.stdSerializers.err(error as any)
-              : error,
-          args,
-        },
-        "A new error occured while processing interaction",
-      );
+      cursor += 1;
+    }
 
-      if (args.at(0) && args.at(0) instanceof Interaction) {
-        await errorReplyer(args.at(0) as Interaction, error);
-      }
+    if (cursor === handlers.length) {
+      throw new AppError(`Could not process event`);
     }
   };

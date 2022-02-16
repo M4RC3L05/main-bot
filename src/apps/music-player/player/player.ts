@@ -6,8 +6,8 @@ import {
   VoiceConnection,
 } from "@discordjs/voice";
 import { VoiceBasedChannel } from "discord.js";
-import { MusicQueue } from "#src/apps/music-player/player/music-queue";
-import { PlayerSource } from "#src/apps/music-player/player/sources/player-source";
+import { MusicQueue } from "#src/apps/music-player/player/music-queue.js";
+import { PlayerSource } from "#src/apps/music-player/player/sources/player-source.js";
 
 export class DiscordPlayer {
   #musicQueue: MusicQueue;

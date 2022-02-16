@@ -1,10 +1,10 @@
 import { Interaction, Message } from "discord.js";
-import { PlayerActions } from "#src/apps/music-player/commands";
-import { DiscordPlayer } from "#src/apps/music-player/player/player";
-import { AppError } from "#src/core/errors/app.error";
-import { playerView } from "#src/apps/music-player/view";
-import { loggerFactory } from "#src/core/clients/logger";
-import { DiscordEventHandler } from "#src/core/interfaces/discord-event-handler";
+import { PlayerActions } from "#src/apps/music-player/commands.js";
+import { DiscordPlayer } from "#src/apps/music-player/player/player.js";
+import { playerView } from "#src/apps/music-player/view.js";
+import { loggerFactory } from "#src/core/clients/logger.js";
+import { DiscordEventHandler } from "#src/core/interfaces/discord-event-handler.js";
+import { AppError } from "#src/core/errors/app.error.js";
 
 const logger = loggerFactory("music-player-button-handler");
 

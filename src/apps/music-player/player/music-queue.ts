@@ -1,4 +1,4 @@
-import { MusicInfo } from "#src/apps/music-player/player/sources/stream-source";
+import { MusicInfo } from "#src/apps/music-player/player/sources/player-source.js";
 
 export class MusicQueue {
   #queue: MusicInfo[] = [];
